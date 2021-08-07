@@ -44,6 +44,21 @@ enum CalcButtons: String {
         }
     }
     
+    var buttonBackgroundDark: Color {
+        switch self {
+        case .equal, .add, .sub, .div, .mul: return Color(UIColor(red: 43/255.0, green: 96/255.0, blue: 222/255.0, alpha: 1))
+        case .clear, .negative, .percent: return Color(.lightGray)
+        default: return Color(.darkGray)
+        }
+    }
+
+    var buttonForegroundDark: Color {
+        switch self {
+        case .clear, .negative, .percent: return .black
+        default: return .white
+        }
+    }
+    
     var buttonSize: Font {
         switch self {
         case .equal, .add, .sub, .div, .mul: return .system(size: 42)
@@ -53,6 +68,9 @@ enum CalcButtons: String {
 }
 
 struct ContentView: View {
+    
+    @Environment(\.colorScheme) var colorScheme
+    @State var value = "0"
     
     let buttons: [[CalcButtons]] = [
         [.clear, .negative, .percent, .mul],
@@ -68,8 +86,7 @@ struct ContentView: View {
                 Spacer()
                 HStack {
                     Spacer()
-                    Text("0")
-                        
+                    Text(value)
                         .font(.system(size: 100))
                 }
                 .padding()
@@ -77,14 +94,17 @@ struct ContentView: View {
                 ForEach(buttons, id: \.self) { row in
                     HStack(spacing: 12) {
                         ForEach(row, id: \.self) { item in
-                            Button(action: {},
+                            Button(action: { self.didTap(button: item) },
                                    label: {
                                     Text(item.rawValue)
                                         .font(item.buttonSize)
                                         .frame(width: self.buttonWidth(item: item),
                                                height: self.buttonHeight())
-                                        .background(item.buttonBackground)
-                                        .foregroundColor(item.buttonForeground)
+                                        
+                                        .background(self.colorScheme == .dark ? item.buttonBackgroundDark : item.buttonBackground)
+                                        
+                                        .foregroundColor(self.colorScheme == .dark ? item.buttonForegroundDark : item.buttonForeground)
+                                        
                                         .cornerRadius(self.buttonHeight() / 2)
                             })
                         }
@@ -93,6 +113,27 @@ struct ContentView: View {
                 }
             }
             .padding(.bottom, 8)
+        }
+    }
+    
+    func didTap(button: CalcButtons) {
+        switch button {
+        case .clear:
+            self.value = "0"
+            
+        case .mul, .div, .sub, .add, .equal:
+            break
+            
+        case .negative, .percent, .decimal:
+            break
+            
+        default:
+            let number = button.rawValue
+            if self.value == "0" {
+                value = number
+            } else {
+                self.value = "\(self.value)\(number)"
+            }
         }
     }
     
